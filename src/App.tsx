@@ -1733,7 +1733,7 @@ export default function WayfindingApp() {
                 ["--brand-black" as any]: "#212424",
                 ["--brand-white" as any]: "#ffffff",
                 ["--brand-gray" as any]: "#f8f9fa",
-                height: "1080px",
+                height: "100vh",
                 fontFamily: lang === 'ar' ? '"URW DIN Arabic", Poppins, ui-sans-serif, system-ui' : 'Poppins, ui-sans-serif, system-ui',
                 // Fixed image background (served from public/images)
                 backgroundImage: `url(${withBase("/images/green_bg.jpg")})`,
