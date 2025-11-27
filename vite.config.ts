@@ -6,8 +6,8 @@ export default defineConfig({
     plugins: [react()],
     // Base path:
     // - On Vercel, env var VERCEL is defined → use root '/'
-    // - Otherwise (e.g., GitHub Pages project site), use '/ain-mall/'
-    base: process.env.VERCEL ? '/' : '/ain-mall/',
+    // - Otherwise (e.g., GitHub Pages project site), use '/shakhbout/'
+    base: process.env.VERCEL ? '/' : '/shakhbout/',
     optimizeDeps: {
         include: ['@mappedin/mappedin-js'],
     },

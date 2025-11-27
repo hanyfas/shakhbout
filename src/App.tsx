@@ -45,7 +45,7 @@ import {
 } from "lucide-react";
 
 /**
- * Single-file React app (TSX) for Al Ain Mall Wayfinding
+ * Single-file React app (TSX) for Shakhbout Mall Wayfinding
  * Fixes: The previous canvas bundled multiple files (package.json, vite config, etc.)
  * into one TSX document, which caused `Missing semicolon (3:8)` while parsing JSON
  * as TypeScript. This file is a valid standalone component for the playground/Cursor.
@@ -61,7 +61,8 @@ import {
  */
 
 // ---------- Constants & Types ----------
-const LOGO_URL = "/images/AinMall_Logo.png";
+// Use the new Shakhbout Mall logo from the built images folder
+const LOGO_URL = "/images/shakhbout_logo.png";
 
 // MappedIn Configuration - matching reference project
 const MAPPEDIN_OPTIONS = {
@@ -72,7 +73,7 @@ const MAPPEDIN_OPTIONS = {
 
 // Ensure assets resolve correctly under different base paths (Vercel vs GitHub Pages)
 function withBase(path: string): string {
-    // Simple join that preserves non-root BASE_URL like '/ain-mall/'
+    // Simple join that preserves non-root BASE_URL like '/shakhbout/'
     const base = (import.meta as any).env.BASE_URL || '/';
     const baseNorm = base.endsWith('/') ? base : base + '/';
     const p = path.startsWith('/') ? path.slice(1) : path;
@@ -1074,14 +1075,20 @@ function MapCanvas({ lang }: { lang: Lang; activeId?: number; stores?: StoreRec[
                 // Set up floor-change event listener BEFORE any operations that might trigger it
                 mapView.on('floor-change', (event: any) => {
                     if (!isMounted) return;
+                    console.log('Floor change event:', event);
 
                     const floorsFromRef = (mapViewRef.current as any).__floors;
-                    if (!floorsFromRef || floorsFromRef.length === 0) return;
+                    if (!floorsFromRef || floorsFromRef.length === 0) {
+                        console.log('No floors in ref');
+                        return;
+                    }
 
                     // Match reference: event.floor.id
                     const newFloorId = event?.floor?.id || event?.floorId;
+                    console.log('New floor ID:', newFloorId);
                     if (newFloorId) {
                         const floorIndex = floorsFromRef.findIndex((f: any) => f.id === newFloorId);
+                        console.log('Found floor index:', floorIndex);
                         if (floorIndex !== -1) {
                             setCurrentFloor(floorIndex);
                         }
@@ -1270,25 +1277,61 @@ function MapCanvas({ lang }: { lang: Lang; activeId?: number; stores?: StoreRec[
     const currentFloorName = floors[currentFloor] || 'G';
 
     const handleFloorUp = () => {
-        if (!mapViewRef.current || !isMapLoaded || !floorsList || floorsList.length === 0) return;
-        if (currentFloor >= floorsList.length - 1) return;
+        if (!mapViewRef.current || !isMapLoaded || !floorsList || floorsList.length === 0) {
+            console.log('Floor up blocked:', { mapView: !!mapViewRef.current, isMapLoaded, floorsList: floorsList?.length });
+            return;
+        }
+        if (currentFloor >= floorsList.length - 1) {
+            console.log('Already at top floor');
+            return;
+        }
 
         const nextFloor = floorsList[currentFloor + 1];
-        if (!nextFloor) return;
+        if (!nextFloor) {
+            console.log('Next floor not found');
+            return;
+        }
 
-        // Match reference exactly: mapView.setFloor(floor.id);
-        mapViewRef.current.setFloor(nextFloor.id);
+        console.log('Changing floor up to:', nextFloor.id, nextFloor.name || nextFloor.shortName);
+        // Try using Floor object first, fallback to ID
+        try {
+            mapViewRef.current.setFloor(nextFloor);
+        } catch (e) {
+            try {
+                mapViewRef.current.setFloor(nextFloor.id);
+            } catch (e2) {
+                console.error('Error setting floor:', e2);
+            }
+        }
     };
 
     const handleFloorDown = () => {
-        if (!mapViewRef.current || !isMapLoaded || !floorsList || floorsList.length === 0) return;
-        if (currentFloor <= 0) return;
+        if (!mapViewRef.current || !isMapLoaded || !floorsList || floorsList.length === 0) {
+            console.log('Floor down blocked:', { mapView: !!mapViewRef.current, isMapLoaded, floorsList: floorsList?.length });
+            return;
+        }
+        if (currentFloor <= 0) {
+            console.log('Already at bottom floor');
+            return;
+        }
 
         const prevFloor = floorsList[currentFloor - 1];
-        if (!prevFloor) return;
+        if (!prevFloor) {
+            console.log('Previous floor not found');
+            return;
+        }
 
-        // Match reference exactly: mapView.setFloor(floor.id);
-        mapViewRef.current.setFloor(prevFloor.id);
+        console.log('Changing floor down to:', prevFloor.id, prevFloor.name || prevFloor.shortName);
+        // Try using Floor object first, fallback to ID
+        try {
+            mapViewRef.current.setFloor(prevFloor);
+        } catch (e) {
+            try {
+                mapViewRef.current.setFloor(prevFloor.id);
+            } catch (e2) {
+                console.error('Error setting floor:', e2);
+            }
+        }
     };
 
     const handleZoomIn = () => {
@@ -1685,63 +1728,26 @@ export default function WayfindingApp() {
             data-ui-variant={dense ? "dense" : "default"}
             dir={dir}
             style={{
-                ["--brand-purple" as any]: "#A072E8",
+                // Brand tokens tuned to Shakhbout Mall green palette
+                ["--brand-purple" as any]: "#006434",
                 ["--brand-black" as any]: "#212424",
                 ["--brand-white" as any]: "#ffffff",
                 ["--brand-gray" as any]: "#f8f9fa",
                 height: "1080px",
                 fontFamily: lang === 'ar' ? '"URW DIN Arabic", Poppins, ui-sans-serif, system-ui' : 'Poppins, ui-sans-serif, system-ui',
-                // Fixed background (no flipping on language change)
-                background: "linear-gradient(135deg, #2b0c59 0%, #45107d 40%, #6a3ab0 100%)"
+                // Fixed image background (served from public/images)
+                backgroundImage: `url(${withBase("/images/green_bg.jpg")})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat"
             }}
         >
-            {/* Background decorative glows (match attached look) */}
-            <div className="absolute inset-0 pointer-events-none">
-                {/* Soft light under logo for readability */}
-                <div
-                    className="absolute rounded-full blur-[80px] opacity-70"
-                    style={{
-                        width: "34vw",
-                        height: "24vw",
-                        top: "-6vw",
-                        left: lang === "ar" ? undefined : "-6vw",
-                        right: lang === "ar" ? "-6vw" : undefined,
-                        background: "radial-gradient(closest-side, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.7) 35%, rgba(255,255,255,0) 70%)"
-                    }}
-                />
-                {/* Top-right magenta glow */}
-                <div
-                    className="absolute rounded-full blur-[120px] opacity-60"
-                    style={{
-                        width: "46vw",
-                        height: "46vw",
-                        right: "-12vw",
-                        top: "-14vw",
-                        background: "radial-gradient(closest-side, #ff2dc7 0%, rgba(255,45,199,0.6) 35%, rgba(255,45,199,0.0) 70%)"
-                    }}
-                />
-                {/* Bottom-right purple glow */}
-                <div
-                    className="absolute rounded-full blur-[120px] opacity-70"
-                    style={{
-                        width: "42vw",
-                        height: "42vw",
-                        right: "-8vw",
-                        bottom: "-12vw",
-                        background: "radial-gradient(closest-side, #6a3ab0 0%, rgba(106,58,176,0.55) 40%, rgba(106,58,176,0.0) 75%)"
-                    }}
-                />
-                {/* Optional soft vignette */}
-                <div className="absolute inset-0" style={{
-                    background: "radial-gradient(120% 120% at 50% 30%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.18) 100%)"
-                }} />
-            </div>
             {/* Font setup */}
             <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&display=swap');
         @font-face { font-family: 'URW DIN Arabic'; src: url(${arabicFontUrl}) format('truetype'); font-weight: 400; font-style: normal; font-display: swap; }
         :root { 
-            --brand-purple: #A072E8; 
+            --brand-purple: #006434; 
             --brand-black: #1a1a1a; 
             --brand-white: #ffffff;
             --brand-gray: #f8f9fa;
@@ -1751,22 +1757,22 @@ export default function WayfindingApp() {
         
         @keyframes gradient {
             0% { 
-                background: linear-gradient(135deg, #ffffff 0%, #c9aaf0 50%, #A072E8 100%);
+                background: linear-gradient(135deg, #e6f5ec 0%, #4ca56f 45%, #006434 100%);
             }
             20% { 
-                background: linear-gradient(135deg, #f5f5f5 0%, #c0a8e8 50%, #9a6ae0 100%);
+                background: linear-gradient(135deg, #f0faf3 0%, #6fbb86 45%, #0b7b45 100%);
             }
             40% { 
-                background: linear-gradient(135deg, #e8e8e8 0%, #b098d8 50%, #8a5ad0 100%);
+                background: linear-gradient(135deg, #e0f2e7 0%, #5daf7b 45%, #006434 100%);
             }
             60% { 
-                background: linear-gradient(135deg, #d8d8d8 0%, #a088c8 50%, #7a4ac0 100%);
+                background: linear-gradient(135deg, #e9f7ed 0%, #74c291 45%, #0b7b45 100%);
             }
             80% { 
-                background: linear-gradient(135deg, #c8c8c8 0%, #9078b8 50%, #6a3ab0 100%);
+                background: linear-gradient(135deg, #e3f4e9 0%, #57b47f 45%, #006434 100%);
             }
             100% { 
-                background: linear-gradient(135deg, #ffffff 0%, #c9aaf0 50%, #A072E8 100%);
+                background: linear-gradient(135deg, #e6f5ec 0%, #4ca56f 45%, #006434 100%);
             }
         }
         
@@ -1841,7 +1847,7 @@ export default function WayfindingApp() {
                             </button>
                             <LanguageToggle lang={lang} onChange={setLang} />
                         </div>
-                        <img src={toSrc(LOGO_URL) || ''} alt="Mall of Al Ain Logo" className="h-10 md:h-12 object-contain drop-shadow" />
+                        <img src={toSrc(LOGO_URL) || ''} alt="Shakhbout Mall Logo" className="h-10 md:h-12 object-contain drop-shadow" />
                     </div>
                 </div>
 

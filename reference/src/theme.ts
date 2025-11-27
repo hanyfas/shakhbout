@@ -78,11 +78,11 @@ const theme = {
       "path": "#5C93E1"
     },
     "rooms": {
-      "standard": "#9FAEA6",
+      "standard": "#EEECE7",
       "inaccessible": "#D8D5CB",
-      "bathroom": "#9FAEA6",
-      "hallway": "#9FAEA6",
-      "connection": "#9FAEA6",
+      "bathroom": "#D7E5EC",
+      "hallway": "#F8F7F3",
+      "connection": "#EEECE7",
       "wall": "#FFFFFF",
       "desk": "#C9C7C2"
     }
@@ -92,4 +92,3 @@ const theme = {
 
 export default theme;
 export const colors = theme.colors;
-
